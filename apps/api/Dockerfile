@@ -31,7 +31,9 @@ COPY --from=builder /app/packages ./packages
 COPY scripts/entrypoint.sh ./entrypoint.sh
 
 RUN chmod +x entrypoint.sh
-RUN mkdir -p /app/uploads
+RUN mkdir -p /app/uploads && chown -R node:node /app
+
+USER node
 
 EXPOSE 4000
 

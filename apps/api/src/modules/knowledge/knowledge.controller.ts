@@ -30,7 +30,7 @@ export class KnowledgeController {
   constructor(private knowledgeService: KnowledgeService) {}
 
   @Post('import')
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseInterceptors(FilesInterceptor('files', 20, { limits: { fileSize: 5 * 1024 * 1024 } }))
   async importFiles(@UploadedFiles() files: Express.Multer.File[]) {
     return this.knowledgeService.importFiles(files);
   }
