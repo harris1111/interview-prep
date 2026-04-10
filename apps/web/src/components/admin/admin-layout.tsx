@@ -22,6 +22,7 @@ import {
   Settings as SettingsIcon,
   Menu as MenuIcon,
   Logout as LogoutIcon,
+  LibraryBooks as LibraryBooksIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/use-auth';
 
@@ -33,6 +34,7 @@ const menuItems = [
   { path: '/admin/topics', label: 'Topics', icon: <TopicIcon /> },
   { path: '/admin/questions', label: 'Questions', icon: <QuizIcon /> },
   { path: '/admin/scenarios', label: 'Scenarios', icon: <ScenarioIcon /> },
+  { path: '/admin/knowledge', label: 'Knowledge', icon: <LibraryBooksIcon /> },
   { path: '/admin/users', label: 'Users', icon: <PeopleIcon /> },
   { path: '/admin/settings', label: 'Settings', icon: <SettingsIcon /> },
 ];

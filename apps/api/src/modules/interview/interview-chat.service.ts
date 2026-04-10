@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { LlmService, ChatMessage } from '../llm/llm.service';
 import { PromptBuilderService } from './prompt-builder.service';
+import { KnowledgeService } from '../knowledge/knowledge.service';
 import { MessageRole, RoundStatus } from '@prisma/client';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class InterviewChatService {
     private readonly prisma: PrismaService,
     private readonly llmService: LlmService,
     private readonly promptBuilder: PromptBuilderService,
+    private readonly knowledgeService: KnowledgeService,
   ) {}
 
   async saveUserMessage(
@@ -149,9 +151,18 @@ export class InterviewChatService {
 
     // If this is the first message of the round, add system prompt
     if (round.messages.length === 0 || round.messages[0].role !== MessageRole.SYSTEM) {
+      // Retrieve knowledge entries for this round's topic
+      const knowledgeEntries = await this.knowledgeService.findByTopic(
+        round.topicFocus,
+        session.scenario.careerId,
+        5,
+      );
+
       const systemPrompt = this.promptBuilder.buildRoundStartPrompt(
         round,
         session.scenario,
+        undefined,
+        knowledgeEntries,
       );
       llmMessages.push(systemPrompt);
     }

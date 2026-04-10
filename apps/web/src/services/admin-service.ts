@@ -89,6 +89,18 @@ export interface DashboardStats {
   recentSessions: number;
 }
 
+export interface KnowledgeEntry {
+  id: string;
+  title: string;
+  content: string;
+  source?: string;
+  careerId?: string;
+  topicSlug?: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
@@ -238,6 +250,52 @@ export const settingsApi = {
 export const dashboardApi = {
   async getStats(): Promise<DashboardStats> {
     const response = await apiClient.get('/admin/dashboard/stats');
+    return response.data;
+  },
+};
+
+// Knowledge APIs
+export const knowledgeApi = {
+  async getAll(params?: {
+    search?: string;
+    careerId?: string;
+    topicSlug?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResponse<KnowledgeEntry>> {
+    const response = await apiClient.get('/admin/knowledge', { params });
+    return response.data;
+  },
+
+  async create(data: Partial<KnowledgeEntry>): Promise<KnowledgeEntry> {
+    const response = await apiClient.post('/admin/knowledge', data);
+    return response.data;
+  },
+
+  async update(id: string, data: Partial<KnowledgeEntry>): Promise<KnowledgeEntry> {
+    const response = await apiClient.put(`/admin/knowledge/${id}`, data);
+    return response.data;
+  },
+
+  async delete(id: string): Promise<void> {
+    await apiClient.delete(`/admin/knowledge/${id}`);
+  },
+
+  async importFiles(files: File[]): Promise<{
+    filesProcessed: number;
+    questionsImported: number;
+    knowledgeEntriesCreated: number;
+    errors: string[];
+  }> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    const response = await apiClient.post('/admin/knowledge/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   },
 };
