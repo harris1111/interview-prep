@@ -16,7 +16,7 @@ import { KnowledgeModule } from './modules/knowledge/knowledge.module';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
-      envFilePath: '.env',
+      envFilePath: ['.env', '../../.env'],
     }),
     BullModule.forRootAsync({
       inject: [ConfigService],
