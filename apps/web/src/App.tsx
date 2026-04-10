@@ -17,6 +17,9 @@ import { Questions } from './pages/admin/questions';
 import { Scenarios } from './pages/admin/scenarios';
 import { Users } from './pages/admin/users';
 import { Settings } from './pages/admin/settings';
+import { CvUploadPage } from './pages/cv/upload';
+import { CvAnalysisPage } from './pages/cv/analysis';
+import { MyCvsPage } from './pages/cv/my-cvs';
 
 function HomePage() {
   const { user } = useAuth();
@@ -84,6 +87,32 @@ function App() {
           <Route path="users" element={<Users />} />
           <Route path="settings" element={<Settings />} />
         </Route>
+
+        {/* CV routes */}
+        <Route
+          path="/cv/upload"
+          element={
+            <ProtectedRoute>
+              <CvUploadPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cv/my"
+          element={
+            <ProtectedRoute>
+              <MyCvsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cv/:id"
+          element={
+            <ProtectedRoute>
+              <CvAnalysisPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
