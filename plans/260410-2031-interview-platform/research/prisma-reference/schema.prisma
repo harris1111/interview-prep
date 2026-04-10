@@ -1,0 +1,475 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// AUTH & USER MANAGEMENT
+// ============================================================================
+
+model User {
+  id                    Int       @id @default(autoincrement())
+  email                 String    @unique
+  passwordHash          String
+  role                  UserRole  @default(USER)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  deletedAt             DateTime?
+  deletedBy             Int?
+
+  // Relations
+  profile               UserProfile?
+  cvUploads             CVUpload[]
+  interviewSessions     InterviewSession[]
+  messages              InterviewMessage[]
+  answerScores          AnswerScore[]
+  createdQuestions      Question[] @relation("CreatedByUser")
+  createdScenarios      ScenarioTemplate[] @relation("CreatedByUser")
+  createdKnowledgeBase  KnowledgeBase[] @relation("CreatedByUser")
+  deletedByRelation     User? @relation("UserDeletedBy", fields: [deletedBy], references: [id])
+  userDeletedRelation   User[] @relation("UserDeletedBy")
+
+  @@index([email])
+  @@index([role])
+  @@index([deletedAt])
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model UserProfile {
+  id              Int    @id @default(autoincrement())
+  userId          Int    @unique
+  firstName       String?
+  lastName        String?
+  bio             String?
+  targetRole      String? // e.g., "DevOps Engineer", "Backend Developer"
+  experienceYears Int?   // years of professional experience
+  skills          String[] @default([]) // array of skill tags
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================================================
+// ROLES, TOPICS, QUESTIONS
+// ============================================================================
+
+model Role {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique // e.g., "DevOps Engineer", "Backend Developer"
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  deletedBy   Int?
+
+  topics              Topic[]
+  scenarioTemplates   ScenarioTemplate[]
+
+  @@index([name])
+  @@index([deletedAt])
+}
+
+model Topic {
+  id        Int       @id @default(autoincrement())
+  roleId    Int
+  name      String    // e.g., "Kubernetes", "CI/CD", "System Design"
+  slug      String    // e.g., "kubernetes", "ci-cd"
+  description String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  deletedBy Int?
+
+  role      Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  questions Question[]
+  scenarioRoundTopics ScenarioRoundTopic[]
+
+  @@unique([roleId, slug])
+  @@index([roleId])
+  @@index([deletedAt])
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+model Question {
+  id              Int             @id @default(autoincrement())
+  topicId         Int
+  text            String          // The actual question text
+  difficultyLevel DifficultyLevel @default(INTERMEDIATE)
+  expectedAnswer  String?         // Reference answer for LLM evaluation
+  isLlmGenerated  Boolean         @default(false)
+  generatedBy     String?         // e.g., "gpt-4-turbo", "claude-3"
+  createdBy       Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+  deletedBy       Int?
+
+  topic           Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  creator         User? @relation("CreatedByUser", fields: [createdBy], references: [id])
+  messages        InterviewMessage[] // questions asked during session
+  answerScores    AnswerScore[]
+
+  @@index([topicId])
+  @@index([difficultyLevel])
+  @@index([deletedAt])
+}
+
+// ============================================================================
+// SCENARIO TEMPLATES & INTERVIEW SESSION STRUCTURE
+// ============================================================================
+
+model ScenarioTemplate {
+  id          Int       @id @default(autoincrement())
+  name        String    // e.g., "DevOps 90-min Interview"
+  description String?
+  roleId      Int       // Target role for this scenario
+  totalRounds Int       // Number of rounds in scenario
+  isActive    Boolean   @default(true)
+  createdBy   Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  deletedBy   Int?
+
+  role        Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  creator     User @relation("CreatedByUser", fields: [createdBy], references: [id])
+  rounds      ScenarioRound[]
+  sessions    InterviewSession[]
+
+  @@index([roleId])
+  @@index([isActive])
+  @@index([deletedAt])
+}
+
+model ScenarioRound {
+  id              Int    @id @default(autoincrement())
+  scenarioId      Int
+  roundNumber     Int    // 1, 2, 3, etc.
+  name            String? // e.g., "Foundation Topics", "Advanced Topics"
+  description     String?
+  duration        Int?   // minutes (optional)
+  questionsPerTopic Int @default(2)
+  overallDifficulty DifficultyLevel @default(INTERMEDIATE)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  scenario        ScenarioTemplate @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  topics          ScenarioRoundTopic[]
+  sessionRounds   InterviewRound[]
+
+  @@unique([scenarioId, roundNumber])
+  @@index([scenarioId])
+}
+
+model ScenarioRoundTopic {
+  id            Int @id @default(autoincrement())
+  roundId       Int
+  topicId       Int
+  questionCount Int @default(1)
+  createdAt     DateTime @default(now())
+
+  round         ScenarioRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  topic         Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([roundId, topicId])
+  @@index([roundId])
+  @@index([topicId])
+}
+
+// ============================================================================
+// INTERVIEW SESSION & MESSAGES
+// ============================================================================
+
+enum InterviewSessionStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ABANDONED
+}
+
+model InterviewSession {
+  id              Int                     @id @default(autoincrement())
+  userId          Int
+  scenarioId      Int
+  status          InterviewSessionStatus @default(PENDING)
+  overallScore    Float?                 // 0-100, calculated after completion
+  strengths       String[]               @default([]) // key areas of strength
+  weaknesses      String[]               @default([]) // areas needing improvement
+  feedback        String?                // overall LLM feedback
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  user            User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenario        ScenarioTemplate @relation(fields: [scenarioId], references: [id])
+  rounds          InterviewRound[]
+  messages        InterviewMessage[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model InterviewRound {
+  id          Int     @id @default(autoincrement())
+  sessionId   Int
+  roundNumber Int     // 1, 2, 3, etc.
+  topicId     Int?   // which topic is this round focused on
+  questionsAsked Int @default(0)
+  roundScore  Float? // average score for this round
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  session     InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  messages    InterviewMessage[]
+  scores      AnswerScore[]
+
+  @@unique([sessionId, roundNumber])
+  @@index([sessionId])
+  @@index([topicId])
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model InterviewMessage {
+  id        Int         @id @default(autoincrement())
+  sessionId Int
+  roundId   Int
+  questionId Int?      // if this is a question being asked
+  role      MessageRole @default(ASSISTANT)
+  content   String      // the message text
+  metadata  Json?       // optional: token count, processing time, etc.
+  createdAt DateTime    @default(now())
+
+  session   InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  round     InterviewRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  question  Question? @relation(fields: [questionId], references: [id])
+  scores    AnswerScore[]
+
+  @@index([sessionId])
+  @@index([roundId])
+  @@index([role])
+  @@index([createdAt])
+}
+
+model AnswerScore {
+  id              Int     @id @default(autoincrement())
+  messageId       Int     // the user's answer message
+  questionId      Int?
+  roundId         Int
+  score           Float   // 0-10
+  feedback        String  // LLM-generated feedback for this answer
+  strengths       String[]  @default([]) // e.g., ["clear explanation", "good examples"]
+  weaknesses      String[]  @default([]) // e.g., ["missing edge cases", "incomplete knowledge"]
+  evaluationMeta  Json?   // optional: token cost, eval model used, confidence score
+  evaluatedBy     Int?    // user id if manually scored
+  createdAt       DateTime @default(now())
+
+  message         InterviewMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  question        Question? @relation(fields: [questionId], references: [id])
+  round           InterviewRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  evaluator       User? @relation(fields: [evaluatedBy], references: [id])
+
+  @@index([messageId])
+  @@index([roundId])
+  @@index([score])
+}
+
+// ============================================================================
+// CV UPLOAD & ANALYSIS
+// ============================================================================
+
+enum CVUploadStatus {
+  PENDING
+  PROCESSING
+  EXTRACTED
+  ANALYZED
+  FAILED
+}
+
+model CVUpload {
+  id        Int             @id @default(autoincrement())
+  userId    Int
+  filename  String
+  fileSize  Int             // bytes
+  mimeType  String          // e.g., "application/pdf"
+  status    CVUploadStatus  @default(PENDING)
+  uploadUrl String?         // S3 or storage URL
+  errorMsg  String?         // if status = FAILED
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parsed    CVParsed?
+  analysis  CVAnalysis?
+
+  @@index([userId])
+  @@index([status])
+}
+
+model CVParsed {
+  id          Int     @id @default(autoincrement())
+  cvUploadId  Int     @unique
+  name        String?
+  email       String?
+  phone       String?
+  skills      String[] @default([]) // extracted skills
+  experience  Json    // array of job experiences: {title, company, duration, description}
+  education   Json?   // array of education entries
+  projects    Json?   // array of personal/professional projects
+  languages   String[] @default([])
+  certifications String[] @default([])
+  extractedAt DateTime @default(now())
+
+  cvUpload    CVUpload @relation(fields: [cvUploadId], references: [id], onDelete: Cascade)
+
+  @@index([cvUploadId])
+}
+
+model CVAnalysis {
+  id                Int     @id @default(autoincrement())
+  userId            Int
+  cvUploadId        Int     @unique
+  targetRoleId      Int?    // which role was analysis done for
+  missingSkills     String[] @default([]) // skills candidate lacks for target role
+  experienceGaps    Json?   // areas where experience is lacking
+  strengthAreas     String[] @default([]) // areas of strength relative to role
+  recommendations   Json?   // structured suggestions for improvement
+  overallFit        Float?  // 0-100 how well candidate fits role
+  analysisPrompt    String? // system prompt used for analysis
+  analyzedAt        DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  cvUpload    CVUpload @relation(fields: [cvUploadId], references: [id], onDelete: Cascade)
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([targetRoleId])
+  @@index([analyzedAt])
+}
+
+// ============================================================================
+// KNOWLEDGE BASE (for RAG)
+// ============================================================================
+
+model KnowledgeBase {
+  id              Int       @id @default(autoincrement())
+  title           String
+  slug            String    @unique
+  category        String?   // e.g., "kubernetes", "system-design"
+  content         String    // markdown or raw text
+  source          String?   // e.g., "uploaded", "imported", "external_url"
+  isActive        Boolean   @default(true)
+  createdBy       Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+  deletedBy       Int?
+
+  creator         User @relation("CreatedByUser", fields: [createdBy], references: [id])
+  vectors         KnowledgeBaseVector[]
+
+  @@index([slug])
+  @@index([category])
+  @@index([isActive])
+  @@index([deletedAt])
+}
+
+model KnowledgeBaseVector {
+  id          Int     @id @default(autoincrement())
+  kbId        Int
+  chunkIndex  Int     // chunk number within document
+  chunk       String  // text chunk
+  embedding   Float[] @db.Vector(1536) // OpenAI embedding dimension (adjust as needed)
+  createdAt   DateTime @default(now())
+
+  knowledgeBase KnowledgeBase @relation(fields: [kbId], references: [id], onDelete: Cascade)
+
+  @@index([kbId])
+  @@index([embedding])
+}
+
+// ============================================================================
+// LLM CONFIGURATION
+// ============================================================================
+
+model LLMConfig {
+  id              Int     @id @default(autoincrement())
+  // Question Generation
+  generationModel     String @default("gpt-4-turbo")
+  generationBaseUrl   String?
+  generationApiKey    String? // encrypted in production
+  generationTemp      Float  @default(0.7)
+
+  // Evaluation/Scoring
+  evaluationModel     String @default("gpt-4-turbo")
+  evaluationBaseUrl   String?
+  evaluationApiKey    String? // encrypted in production
+  evaluationTemp      Float  @default(0.3) // lower temp for consistency
+
+  // System Prompts
+  questionGenPrompt   String @default("You are an expert technical interviewer...")
+  evaluationPrompt    String @default("Evaluate the candidate's answer...")
+
+  // CV Analysis
+  cvAnalysisModel     String @default("gpt-4-turbo")
+  cvAnalysisPrompt    String @default("Analyze this resume for gaps relative to the target role...")
+
+  // RAG Context
+  useKnowledgeBase    Boolean @default(true)
+  maxContextChunks    Int @default(5)
+  similarityThreshold Float @default(0.7)
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([generationModel]) // assumption: one config per model type
+}
+
+// ============================================================================
+// INDEXES FOR COMMON QUERIES
+// ============================================================================
+// Note: Some indexes are defined inline above. These are additional compound indexes.
+
+// Full-text search ready (PostgreSQL extension: CREATE EXTENSION IF NOT EXISTS pg_trgm)
+// Topic search across name and description
+// Query: SELECT * FROM "Topic" WHERE name ILIKE '%kubernetes%' OR description ILIKE '%container%'
+
+// Common Query Patterns (documented for reference):
+// 1. Find all questions for a role/topic with difficulty filter
+//    Index: idx_question_topic_difficulty (done above)
+//
+// 2. Get interview session with all rounds and messages
+//    Index: idx_round_session_number, idx_message_round_created (done above)
+//
+// 3. Retrieve CV analysis for gap-based question generation
+//    Index: idx_cv_analysis_user_created (done above)
+//
+// 4. User authentication
+//    Index: idx_users_email (done above)
