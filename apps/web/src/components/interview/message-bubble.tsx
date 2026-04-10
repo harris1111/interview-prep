@@ -1,6 +1,7 @@
-import { Box, Typography, Chip, Paper } from '@mui/material';
+import { Box, Typography, Paper } from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 import { InterviewMessage } from '../../services/interview-service';
+import { ScoreBadge } from './score-badge';
 
 interface MessageBubbleProps {
   message: InterviewMessage;
@@ -51,17 +52,20 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
           position: 'relative',
         }}
       >
-        <Typography
-          variant="caption"
-          sx={{
-            display: 'block',
-            mb: 0.5,
-            opacity: 0.8,
-            fontWeight: 600,
-          }}
-        >
-          {isUser ? 'You' : 'Interviewer'}
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              opacity: 0.8,
+              fontWeight: 600,
+            }}
+          >
+            {isUser ? 'You' : 'Interviewer'}
+          </Typography>
+          {!isUser && message.score !== null && message.score !== undefined && (
+            <ScoreBadge score={message.score} feedback={message.feedback} />
+          )}
+        </Box>
 
         {isUser ? (
           <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
@@ -103,22 +107,6 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
               },
             }}
           />
-        )}
-
-        {message.answerScore !== null && (
-          <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid rgba(0,0,0,0.1)' }}>
-            <Chip
-              label={`Score: ${message.answerScore}/10`}
-              size="small"
-              color={message.answerScore >= 7 ? 'success' : message.answerScore >= 5 ? 'warning' : 'error'}
-              sx={{ mr: 1 }}
-            />
-            {message.feedback && (
-              <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontStyle: 'italic' }}>
-                {message.feedback}
-              </Typography>
-            )}
-          </Box>
         )}
 
         <Typography

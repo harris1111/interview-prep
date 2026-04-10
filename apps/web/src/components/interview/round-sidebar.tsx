@@ -93,7 +93,7 @@ export function RoundSidebar({
                 }
                 secondary={
                   <Typography variant="caption" color="text.secondary" noWrap>
-                    {round.roundName}
+                    {round.topicFocus}
                   </Typography>
                 }
               />
