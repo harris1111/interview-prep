@@ -15,6 +15,7 @@ import { Careers } from './pages/admin/careers';
 import { Topics } from './pages/admin/topics';
 import { Questions } from './pages/admin/questions';
 import { Scenarios } from './pages/admin/scenarios';
+import { Knowledge } from './pages/admin/knowledge';
 import { Users } from './pages/admin/users';
 import { Settings } from './pages/admin/settings';
 import { CvUploadPage } from './pages/cv/upload';
@@ -89,6 +90,7 @@ function App() {
           <Route path="topics" element={<Topics />} />
           <Route path="questions" element={<Questions />} />
           <Route path="scenarios" element={<Scenarios />} />
+          <Route path="knowledge" element={<Knowledge />} />
           <Route path="users" element={<Users />} />
           <Route path="settings" element={<Settings />} />
         </Route>
