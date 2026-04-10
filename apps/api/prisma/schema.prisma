@@ -1,6 +1,3 @@
-// This is your Prisma schema file
-// Learn more: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,4 +7,279 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Models will be added in subsequent phases
+// ─── ENUMS ─────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum SessionStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum RoundStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum MessageRole {
+  SYSTEM
+  ASSISTANT
+  USER
+}
+
+enum CvAnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ─── USERS ─────────────────────────────────────────
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  passwordHash    String
+  name            String
+  role            UserRole  @default(USER)
+  isVerified      Boolean   @default(false)
+  verifyToken     String?
+  resetToken      String?
+  resetTokenExp   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  sessions        InterviewSession[]
+  cvUploads       CvUpload[]
+
+  @@index([email])
+}
+
+// ─── CAREER & TOPICS ───────────────────────────────
+
+model Career {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  topics    Topic[]
+  scenarios ScenarioTemplate[]
+}
+
+model Topic {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String
+  careerId    String
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  career      Career             @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  roundTopics RoundTemplateTopic[]
+
+  @@unique([careerId, slug])
+  @@index([careerId])
+}
+
+// ─── QUESTIONS ─────────────────────────────────────
+
+model Question {
+  id             String     @id @default(uuid())
+  topicId        String
+  content        String
+  expectedAnswer String?
+  difficulty     Difficulty @default(MEDIUM)
+  isFixed        Boolean    @default(true)
+  isActive       Boolean    @default(true)
+  tags           String[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@index([topicId])
+  @@index([difficulty])
+  @@index([isActive])
+}
+
+// ─── SCENARIO TEMPLATES ────────────────────────────
+
+model ScenarioTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  careerId    String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  career   Career              @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  rounds   RoundTemplate[]
+  sessions InterviewSession[]
+
+  @@index([careerId])
+}
+
+model RoundTemplate {
+  id              String     @id @default(uuid())
+  scenarioId      String
+  roundNumber     Int
+  name            String
+  description     String?
+  durationMinutes Int        @default(30)
+  questionCount   Int        @default(5)
+  difficulty      Difficulty @default(MEDIUM)
+
+  scenario ScenarioTemplate     @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  topics   RoundTemplateTopic[]
+
+  @@unique([scenarioId, roundNumber])
+  @@index([scenarioId])
+}
+
+model RoundTemplateTopic {
+  id      String @id @default(uuid())
+  roundId String
+  topicId String
+  weight  Int    @default(1)
+
+  round RoundTemplate @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  topic Topic         @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([roundId, topicId])
+}
+
+// ─── INTERVIEW SESSIONS ────────────────────────────
+
+model InterviewSession {
+  id              String        @id @default(uuid())
+  userId          String
+  scenarioId      String
+  status          SessionStatus @default(DRAFT)
+  overallScore    Float?
+  overallFeedback Json?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenario ScenarioTemplate @relation(fields: [scenarioId], references: [id])
+  rounds   InterviewRound[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model InterviewRound {
+  id          String      @id @default(uuid())
+  sessionId   String
+  roundNumber Int
+  topicFocus  String
+  status      RoundStatus @default(PENDING)
+  score       Float?
+  feedback    Json?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  session  InterviewSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  messages InterviewMessage[]
+
+  @@unique([sessionId, roundNumber])
+  @@index([sessionId])
+}
+
+model InterviewMessage {
+  id        String      @id @default(uuid())
+  roundId   String
+  role      MessageRole
+  content   String
+  score     Float?
+  feedback  String?
+  metadata  Json?
+  createdAt DateTime    @default(now())
+
+  round InterviewRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@index([roundId])
+  @@index([createdAt])
+}
+
+// ─── CV MANAGEMENT ─────────────────────────────────
+
+model CvUpload {
+  id        String   @id @default(uuid())
+  userId    String
+  fileName  String
+  filePath  String
+  rawText   String?
+  createdAt DateTime @default(now())
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analysis CvAnalysis?
+
+  @@index([userId])
+}
+
+model CvAnalysis {
+  id             String           @id @default(uuid())
+  cvUploadId     String           @unique
+  status         CvAnalysisStatus @default(PENDING)
+  structuredData Json?
+  gapReport      Json?
+  targetCareerId String?
+  error          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  cvUpload CvUpload @relation(fields: [cvUploadId], references: [id], onDelete: Cascade)
+}
+
+// ─── KNOWLEDGE BASE ────────────────────────────────
+
+model KnowledgeEntry {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  source    String?
+  careerId  String?
+  topicSlug String?
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([careerId])
+  @@index([topicSlug])
+}
+
+// ─── APP SETTINGS ──────────────────────────────────
+
+model AppSettings {
+  id            String  @id @default("singleton")
+  llmBaseUrl    String  @default("https://api.openai.com/v1")
+  llmApiKey     String  @default("")
+  llmModel      String  @default("gpt-4o")
+  llmTemperature Float  @default(0.7)
+  systemPrompt  String  @default("You are an experienced technical interviewer.")
+  updatedAt     DateTime @updatedAt
+}
