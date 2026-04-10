@@ -8,6 +8,7 @@ import { MailModule } from './modules/mail/mail.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { LlmModule } from './modules/llm/llm.module';
 import { CvModule } from './modules/cv/cv.module';
+import { InterviewModule } from './modules/interview/interview.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { CvModule } from './modules/cv/cv.module';
     MailModule,
     AdminModule,
     CvModule,
+    InterviewModule,
   ],
   controllers: [],
   providers: [],

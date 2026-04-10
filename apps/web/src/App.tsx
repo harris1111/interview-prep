@@ -20,6 +20,10 @@ import { Settings } from './pages/admin/settings';
 import { CvUploadPage } from './pages/cv/upload';
 import { CvAnalysisPage } from './pages/cv/analysis';
 import { MyCvsPage } from './pages/cv/my-cvs';
+import { InterviewStartPage } from './pages/interview/start';
+import { InterviewSessionPage } from './pages/interview/session';
+import { InterviewHistoryPage } from './pages/interview/history';
+import { InterviewReviewPage } from './pages/interview/review';
 
 function HomePage() {
   const { user } = useAuth();
@@ -110,6 +114,40 @@ function App() {
           element={
             <ProtectedRoute>
               <CvAnalysisPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Interview routes */}
+        <Route
+          path="/interview/start"
+          element={
+            <ProtectedRoute>
+              <InterviewStartPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/interview/history"
+          element={
+            <ProtectedRoute>
+              <InterviewHistoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/interview/:id"
+          element={
+            <ProtectedRoute>
+              <InterviewSessionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/interview/:id/review"
+          element={
+            <ProtectedRoute>
+              <InterviewReviewPage />
             </ProtectedRoute>
           }
         />
