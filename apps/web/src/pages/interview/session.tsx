@@ -37,8 +37,9 @@ export function InterviewSessionPage() {
     data: null,
   });
 
-  const { isStreaming, streamedContent, startStream, cancelStream, resetStream } = useLlmStream();
+  const { isStreaming, streamedContent, startStream, initStream, cancelStream, resetStream } = useLlmStream();
   const inputRef = useRef<HTMLInputElement>(null);
+  const initCalledRef = useRef(false);
 
   useEffect(() => {
     if (id) {
@@ -48,13 +49,17 @@ export function InterviewSessionPage() {
 
   useEffect(() => {
     if (session) {
+      // Find the active round or default to round 1
       const activeRound = session.rounds?.find((r) => r.status === 'IN_PROGRESS');
-      if (activeRound) {
-        setCurrentRound(activeRound.roundNumber);
-        loadMessages(activeRound.roundNumber);
+      const firstPending = session.rounds?.find((r) => r.status === 'PENDING');
+      const targetRound = activeRound || firstPending || session.rounds?.[0];
+
+      if (targetRound) {
+        setCurrentRound(targetRound.roundNumber);
+        loadMessages(targetRound.roundNumber);
       }
     }
-  }, [session]);
+  }, [session?.id]);
 
   const loadSession = async () => {
     try {
@@ -77,6 +82,27 @@ export function InterviewSessionPage() {
     try {
       const msgs = await interviewService.getMessages(id!, roundNumber);
       setMessages(msgs);
+
+      // Auto-init: if no ASSISTANT message yet, trigger the AI greeting
+      const hasAssistant = msgs.some((m: InterviewMessage) => m.role === 'ASSISTANT');
+      if (!hasAssistant && !initCalledRef.current) {
+        initCalledRef.current = true;
+        resetStream();
+        try {
+          await initStream(id!, roundNumber);
+          // Reload messages after init completes to get the saved greeting
+          const updatedMsgs = await interviewService.getMessages(id!, roundNumber);
+          setMessages(updatedMsgs);
+          resetStream();
+          // Reload session to get updated statuses
+          const updatedSession = await interviewService.getSession(id!);
+          setSession(updatedSession);
+        } catch {
+          // LLM may not be configured, user can still type
+        } finally {
+          initCalledRef.current = false;
+        }
+      }
     } catch (err: any) {
       setError('Failed to load messages');
     }

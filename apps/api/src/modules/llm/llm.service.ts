@@ -27,6 +27,10 @@ export class LlmService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  clearCache() {
+    this.configCache = null;
+  }
+
   async getConfig(): Promise<LlmConfig> {
     const now = Date.now();
 
@@ -70,6 +74,7 @@ export class LlmService {
     const client = new OpenAI({
       baseURL: config.baseUrl,
       apiKey: config.apiKey,
+      timeout: 120_000, // 2 minutes
     });
 
     try {
@@ -97,6 +102,7 @@ export class LlmService {
     const client = new OpenAI({
       baseURL: config.baseUrl,
       apiKey: config.apiKey,
+      timeout: 120_000, // 2 minutes
     });
 
     try {
@@ -122,6 +128,23 @@ export class LlmService {
     }
   }
 
+  /**
+   * Extract JSON from a response that may be wrapped in markdown code blocks
+   */
+  private extractJson(text: string): string {
+    // Try to extract from ```json ... ``` or ``` ... ```
+    const codeBlockMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
+    if (codeBlockMatch) {
+      return codeBlockMatch[1].trim();
+    }
+    // Try to find JSON object/array directly
+    const jsonMatch = text.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+    if (jsonMatch) {
+      return jsonMatch[1].trim();
+    }
+    return text.trim();
+  }
+
   async parseJsonResponse<T = any>(
     messages: ChatMessage[],
     options?: LlmOptions,
@@ -129,21 +152,22 @@ export class LlmService {
     let response = await this.chatCompletion(messages, options);
 
     try {
-      return JSON.parse(response);
+      return JSON.parse(this.extractJson(response));
     } catch (error) {
       // Retry with explicit JSON instruction
       const retryMessages = [
         ...messages,
         {
           role: 'user' as const,
-          content: 'Please respond ONLY with valid JSON, no additional text.',
+          content:
+            'Please respond ONLY with valid JSON, no markdown code blocks or additional text.',
         },
       ];
 
       response = await this.chatCompletion(retryMessages, options);
 
       try {
-        return JSON.parse(response);
+        return JSON.parse(this.extractJson(response));
       } catch (retryError) {
         throw new InternalServerErrorException(
           'Failed to parse LLM response as JSON',

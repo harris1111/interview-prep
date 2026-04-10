@@ -83,7 +83,7 @@ export class ScenarioService {
     }
 
     // Create scenario with rounds in transaction
-    return this.prisma.$transaction(async (tx) => {
+    const scenarioId = await this.prisma.$transaction(async (tx) => {
       const scenario = await tx.scenarioTemplate.create({
         data: {
           name: dto.name,
@@ -117,8 +117,10 @@ export class ScenarioService {
         }
       }
 
-      return this.findOne(scenario.id);
+      return scenario.id;
     });
+
+    return this.findOne(scenarioId);
   }
 
   async update(id: string, dto: UpdateScenarioDto) {

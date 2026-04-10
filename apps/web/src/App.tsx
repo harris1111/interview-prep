@@ -11,6 +11,7 @@ import { ForgotPasswordPage } from './pages/auth/forgot-password';
 import { ResetPasswordPage } from './pages/auth/reset-password';
 import { VerifyEmailPage } from './pages/auth/verify-email';
 import { AdminLayout } from './components/admin/admin-layout';
+import { AuthLayout } from './components/auth/auth-layout';
 import { Dashboard } from './pages/admin/dashboard';
 import { Careers } from './pages/admin/careers';
 import { Topics } from './pages/admin/topics';
@@ -38,12 +39,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Auth routes (no layout) */}
-        <Route path="/auth/login" element={<LoginPage />} />
-        <Route path="/auth/register" element={<RegisterPage />} />
-        <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+        {/* Auth routes (with theme toggle) */}
+        <Route element={<AuthLayout />}>
+          <Route path="/auth/login" element={<LoginPage />} />
+          <Route path="/auth/register" element={<RegisterPage />} />
+          <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+        </Route>
 
         {/* Protected routes with main layout */}
         <Route

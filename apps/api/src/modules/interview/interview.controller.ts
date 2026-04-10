@@ -87,6 +87,64 @@ export class InterviewController {
     return this.interviewService.completeInterview(id, user.id);
   }
 
+  @Post(':id/rounds/:roundNumber/init')
+  async initRound(
+    @Param('id') id: string,
+    @Param('roundNumber', ParseIntPipe) roundNumber: number,
+    @CurrentUser() user: any,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    let clientDisconnected = false;
+    req.on('close', () => {
+      clientDisconnected = true;
+    });
+
+    try {
+      const stream = this.interviewChatService.initRoundStream(
+        id,
+        roundNumber,
+        user.id,
+      );
+      let fullContent = '';
+
+      for await (const chunk of stream) {
+        fullContent += chunk;
+        if (clientDisconnected) break;
+        try {
+          res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
+        } catch {
+          break;
+        }
+      }
+
+      if (fullContent) {
+        await this.interviewChatService.saveAssistantMessage(
+          id,
+          roundNumber,
+          fullContent,
+        );
+      }
+
+      if (!clientDisconnected) {
+        res.write('data: [DONE]\n\n');
+      }
+      res.end();
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      if (!clientDisconnected) {
+        res.write(`data: ${JSON.stringify({ error: errorMessage })}\n\n`);
+      }
+      res.end();
+    }
+  }
+
   @Post(':id/rounds/:roundNumber/stream')
   async stream(
     @Param('id') id: string,

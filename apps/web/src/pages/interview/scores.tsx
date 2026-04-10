@@ -16,7 +16,6 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { EmojiEvents } from '@mui/icons-material';
 import { interviewService, InterviewSession } from '../../services/interview-service';
 
 export function InterviewScoresPage() {
@@ -110,8 +109,7 @@ export function InterviewScoresPage() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          <EmojiEvents sx={{ verticalAlign: 'middle', mr: 1, fontSize: 32 }} />
+        <Typography variant="h4" gutterBottom fontWeight={700}>
           Interview Scores
         </Typography>
 

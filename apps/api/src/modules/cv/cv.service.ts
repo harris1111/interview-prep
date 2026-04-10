@@ -7,6 +7,7 @@ import {
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import * as fs from 'fs/promises';
 import pdfParse from 'pdf-parse';
 
@@ -98,9 +99,17 @@ export class CvService {
   async reanalyze(id: string, userId: string, careerId?: string) {
     const cv = await this.getCv(id, userId);
 
-    // Create new analysis
-    const analysis = await this.prisma.cvAnalysis.create({
-      data: {
+    // Upsert analysis — reset existing or create new
+    const analysis = await this.prisma.cvAnalysis.upsert({
+      where: { cvUploadId: cv.id },
+      update: {
+        status: 'PENDING',
+        structuredData: Prisma.JsonNull,
+        gapReport: Prisma.JsonNull,
+        error: null,
+        targetCareerId: careerId ?? undefined,
+      },
+      create: {
         cvUploadId: cv.id,
         targetCareerId: careerId,
         status: 'PENDING',

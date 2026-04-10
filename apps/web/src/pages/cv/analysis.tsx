@@ -13,12 +13,19 @@ import {
   Card,
   CardContent,
   Divider,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
   ArrowBack as BackIcon,
   CheckCircle as CheckIcon,
   Error as ErrorIcon,
+  School as SchoolIcon,
+  WorkspacePremium as CertIcon,
+  Code as ProjectIcon,
 } from '@mui/icons-material';
 import { cvService, CvUpload } from '../../services/cv-service';
 import { GapReportView } from '../../components/cv/gap-report-view';
@@ -232,6 +239,78 @@ export function CvAnalysisPage() {
                   </CardContent>
                 </Card>
               ))}
+            </Box>
+          )}
+
+          {/* Education */}
+          {structuredData.education && structuredData.education.length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Education
+              </Typography>
+              <List disablePadding>
+                {structuredData.education.map((edu: any, index: number) => (
+                  <ListItem key={index} disablePadding sx={{ mb: 1 }}>
+                    <ListItemIcon sx={{ minWidth: 40 }}>
+                      <SchoolIcon color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={edu.degree}
+                      secondary={`${edu.institution}${edu.year ? ` • ${edu.year}` : ''}`}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          )}
+
+          {/* Projects */}
+          {structuredData.projects && structuredData.projects.length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Projects
+              </Typography>
+              {structuredData.projects.map((proj: any, index: number) => (
+                <Card variant="outlined" key={index} sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <ProjectIcon fontSize="small" color="primary" />
+                      <Typography variant="subtitle1">{proj.name}</Typography>
+                    </Box>
+                    {proj.description && (
+                      <Typography variant="body2" color="text.secondary">
+                        {proj.description}
+                      </Typography>
+                    )}
+                    {proj.technologies && proj.technologies.length > 0 && (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+                        {proj.technologies.map((tech: string, i: number) => (
+                          <Chip key={i} label={tech} size="small" variant="outlined" />
+                        ))}
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          )}
+
+          {/* Certifications */}
+          {structuredData.certifications && structuredData.certifications.length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Certifications
+              </Typography>
+              <List disablePadding>
+                {structuredData.certifications.map((cert: any, index: number) => (
+                  <ListItem key={index} disablePadding sx={{ mb: 1 }}>
+                    <ListItemIcon sx={{ minWidth: 40 }}>
+                      <CertIcon color="warning" />
+                    </ListItemIcon>
+                    <ListItemText primary={typeof cert === 'string' ? cert : cert.name} />
+                  </ListItem>
+                ))}
+              </List>
             </Box>
           )}
         </Paper>

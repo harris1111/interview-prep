@@ -92,33 +92,33 @@ export function CvUploadPage() {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom fontWeight={700}>
         Upload Your CV
       </Typography>
       <Typography variant="body1" color="text.secondary" paragraph>
         Upload your CV in PDF format for AI-powered analysis and gap assessment
       </Typography>
 
-      <Paper sx={{ p: 4, mt: 3 }}>
+      <Paper sx={{ p: 4, mt: 3, border: '1px solid', borderColor: 'divider' }}>
         <Box
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           sx={{
             border: '2px dashed',
             borderColor: file ? 'primary.main' : 'divider',
-            borderRadius: 2,
-            p: 4,
+            borderRadius: 3,
+            p: 5,
             textAlign: 'center',
             backgroundColor: file ? 'action.hover' : 'background.default',
             cursor: 'pointer',
-            transition: 'all 0.3s',
+            transition: 'all 0.2s ease',
             '&:hover': {
               borderColor: 'primary.main',
               backgroundColor: 'action.hover',
             },
           }}
         >
-          <UploadIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+          <UploadIcon sx={{ fontSize: 56, color: file ? 'primary.main' : 'text.disabled', mb: 2 }} />
           <Typography variant="h6" gutterBottom>
             {file ? file.name : 'Drag and drop your CV here'}
           </Typography>

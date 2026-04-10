@@ -17,7 +17,7 @@ import {
   MenuItem,
   Chip,
 } from '@mui/material';
-import { PlayArrow, Psychology } from '@mui/icons-material';
+import { PlayArrow } from '@mui/icons-material';
 import { interviewService, Scenario } from '../../services/interview-service';
 import { cvService, CvAnalysis } from '../../services/cv-service';
 
@@ -80,8 +80,7 @@ export function InterviewStartPage() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          <Psychology sx={{ verticalAlign: 'middle', mr: 1 }} />
+        <Typography variant="h4" gutterBottom fontWeight={700}>
           Start Mock Interview
         </Typography>
         <Typography variant="body1" color="text.secondary">
@@ -121,9 +120,9 @@ export function InterviewStartPage() {
       <Grid container spacing={3}>
         {scenarios.map((scenario) => (
           <Grid item xs={12} md={6} key={scenario.id}>
-            <Card>
+            <Card sx={{ cursor: 'pointer', '&:hover': { borderColor: 'primary.main', boxShadow: '0 4px 16px rgba(37,99,235,0.1)' } }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" gutterBottom fontWeight={600}>
                   {scenario.name}
                 </Typography>
                 {scenario.career && (

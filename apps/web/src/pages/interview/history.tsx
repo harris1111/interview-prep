@@ -17,7 +17,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { History, Visibility, PlayArrow } from '@mui/icons-material';
+import { Visibility, PlayArrow } from '@mui/icons-material';
 import { interviewService, InterviewSession } from '../../services/interview-service';
 
 export function InterviewHistoryPage() {
@@ -80,8 +80,7 @@ export function InterviewHistoryPage() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          <History sx={{ verticalAlign: 'middle', mr: 1 }} />
+        <Typography variant="h4" gutterBottom fontWeight={700}>
           Interview History
         </Typography>
         <Typography variant="body1" color="text.secondary">
@@ -110,7 +109,7 @@ export function InterviewHistoryPage() {
       <Grid container spacing={3}>
         {filteredSessions.map((session) => (
           <Grid item xs={12} md={6} key={session.id}>
-            <Card>
+            <Card sx={{ cursor: 'pointer', '&:hover': { borderColor: 'primary.light' } }}>
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                   <Typography variant="h6">

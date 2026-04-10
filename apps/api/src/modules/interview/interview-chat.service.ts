@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { LlmService, ChatMessage } from '../llm/llm.service';
 import { PromptBuilderService } from './prompt-builder.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
-import { MessageRole, RoundStatus } from '@prisma/client';
+import { MessageRole, RoundStatus, SessionStatus } from '@prisma/client';
 
 @Injectable()
 export class InterviewChatService {
@@ -103,6 +103,88 @@ export class InterviewChatService {
         },
       },
     });
+  }
+
+  async *initRoundStream(
+    sessionId: string,
+    roundNumber: number,
+    userId: string,
+  ): AsyncGenerator<string> {
+    const session = await this.prisma.interviewSession.findUnique({
+      where: { id: sessionId },
+      include: {
+        scenario: { include: { career: true } },
+      },
+    });
+
+    if (!session) throw new NotFoundException('Interview session not found');
+    if (session.userId !== userId)
+      throw new ForbiddenException('Not authorized to access this session');
+
+    const round = await this.prisma.interviewRound.findUnique({
+      where: { sessionId_roundNumber: { sessionId, roundNumber } },
+      include: { messages: { orderBy: { createdAt: 'asc' } } },
+    });
+
+    if (!round) throw new NotFoundException('Interview round not found');
+
+    // Skip if round already has an ASSISTANT message (already initialized)
+    const hasAssistantMsg = round.messages.some(
+      (m) => m.role === MessageRole.ASSISTANT,
+    );
+    if (hasAssistantMsg) return;
+
+    // Update session status to IN_PROGRESS if DRAFT
+    if (session.status === SessionStatus.DRAFT) {
+      await this.prisma.interviewSession.update({
+        where: { id: sessionId },
+        data: { status: SessionStatus.IN_PROGRESS },
+      });
+    }
+
+    // Update round status to IN_PROGRESS if PENDING
+    if (round.status === RoundStatus.PENDING) {
+      await this.prisma.interviewRound.update({
+        where: { id: round.id },
+        data: { status: RoundStatus.IN_PROGRESS, startedAt: new Date() },
+      });
+    }
+
+    // Build LLM messages: system prompt + instruction to greet
+    const llmMessages: ChatMessage[] = [];
+
+    const knowledgeEntries = await this.knowledgeService.findByTopic(
+      round.topicFocus,
+      session.scenario.careerId,
+      5,
+    );
+
+    const systemPrompt = round.messages.find(
+      (m) => m.role === MessageRole.SYSTEM,
+    );
+
+    if (systemPrompt) {
+      llmMessages.push({ role: 'system', content: systemPrompt.content });
+    } else {
+      const builtPrompt = this.promptBuilder.buildRoundStartPrompt(
+        round,
+        session.scenario,
+        undefined,
+        knowledgeEntries,
+      );
+      llmMessages.push(builtPrompt);
+    }
+
+    llmMessages.push({
+      role: 'user',
+      content:
+        'Please introduce yourself as the interviewer, briefly explain what this round will cover, and ask the first question.',
+    });
+
+    const stream = this.llmService.streamChatCompletion(llmMessages);
+    for await (const chunk of stream) {
+      yield chunk;
+    }
   }
 
   async *streamResponse(

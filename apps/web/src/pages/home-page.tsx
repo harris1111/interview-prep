@@ -7,6 +7,7 @@ import {
   CardContent,
   CardActionArea,
   Grid,
+  alpha,
 } from '@mui/material';
 import {
   UploadFile as UploadIcon,
@@ -22,46 +23,46 @@ const features = [
   {
     title: 'Upload CV',
     description: 'Upload your CV/resume for AI-powered analysis and gap detection',
-    icon: <UploadIcon sx={{ fontSize: 48 }} />,
+    icon: UploadIcon,
     path: '/cv/upload',
-    color: '#1976d2',
+    color: '#2563EB',
   },
   {
     title: 'My CVs',
     description: 'View your uploaded CVs and analysis results',
-    icon: <CvIcon sx={{ fontSize: 48 }} />,
+    icon: CvIcon,
     path: '/cv/my',
-    color: '#2e7d32',
+    color: '#10B981',
   },
   {
     title: 'Start Interview',
     description: 'Begin an AI-powered mock interview session tailored to your profile',
-    icon: <StartIcon sx={{ fontSize: 48 }} />,
+    icon: StartIcon,
     path: '/interview/start',
-    color: '#ed6c02',
+    color: '#F97316',
   },
   {
     title: 'Interview History',
     description: 'Review past interview sessions and track your progress',
-    icon: <HistoryIcon sx={{ fontSize: 48 }} />,
+    icon: HistoryIcon,
     path: '/interview/history',
-    color: '#9c27b0',
+    color: '#7C3AED',
   },
   {
     title: 'Scores & Analytics',
     description: 'View detailed scores, feedback, and performance trends',
-    icon: <ScoresIcon sx={{ fontSize: 48 }} />,
+    icon: ScoresIcon,
     path: '/interview/scores',
-    color: '#d32f2f',
+    color: '#EF4444',
   },
 ];
 
 const adminFeature = {
   title: 'Admin Panel',
   description: 'Manage careers, topics, questions, scenarios, and system settings',
-  icon: <AdminIcon sx={{ fontSize: 48 }} />,
+  icon: AdminIcon,
   path: '/admin',
-  color: '#455a64',
+  color: '#475569',
 };
 
 export function HomePage() {
@@ -72,47 +73,68 @@ export function HomePage() {
 
   return (
     <Container maxWidth="lg">
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom fontWeight={700}>
-          Welcome back, {user?.name}!
+      <Box sx={{ mb: 5, mt: 2 }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          gutterBottom
+          fontWeight={700}
+          sx={{ letterSpacing: '-0.03em' }}
+        >
+          Welcome back, {user?.name}
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-          AI-powered interview preparation and practice platform. Choose a feature to get started.
+        <Typography variant="h6" color="text.secondary" fontWeight={400} sx={{ maxWidth: 600 }}>
+          AI-powered interview preparation and practice. Choose a feature to get started.
         </Typography>
       </Box>
 
       <Grid container spacing={3}>
-        {allFeatures.map((feature) => (
-          <Grid key={feature.path} item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                height: '100%',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: 6,
-                },
-              }}
-            >
-              <CardActionArea
-                onClick={() => navigate(feature.path)}
-                sx={{ height: '100%', p: 2 }}
+        {allFeatures.map((feature) => {
+          const Icon = feature.icon;
+          return (
+            <Grid key={feature.path} item xs={12} sm={6} md={4}>
+              <Card
+                sx={{
+                  height: '100%',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: `0 8px 24px ${alpha(feature.color, 0.15)}`,
+                    borderColor: alpha(feature.color, 0.3),
+                  },
+                }}
               >
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Box sx={{ color: feature.color, mb: 2 }}>
-                    {feature.icon}
-                  </Box>
-                  <Typography variant="h6" gutterBottom fontWeight={600}>
-                    {feature.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {feature.description}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
-        ))}
+                <CardActionArea
+                  onClick={() => navigate(feature.path)}
+                  sx={{ height: '100%', p: 1 }}
+                >
+                  <CardContent>
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 2.5,
+                        bgcolor: alpha(feature.color, 0.1),
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mb: 2,
+                      }}
+                    >
+                      <Icon sx={{ fontSize: 26, color: feature.color }} />
+                    </Box>
+                    <Typography variant="h6" gutterBottom fontWeight={600}>
+                      {feature.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" lineHeight={1.6}>
+                      {feature.description}
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          );
+        })}
       </Grid>
     </Container>
   );

@@ -27,13 +27,15 @@ export function ChatWindow({ messages, streamedContent, isStreaming }: ChatWindo
         flex: 1,
         overflow: 'auto',
         p: 3,
-        bgcolor: 'background.default',
-        borderRadius: 2,
+        bgcolor: '#F8FAFC',
+        borderRadius: 0,
       }}
     >
-      {messages.map((message) => (
-        <MessageBubble key={message.id} message={message} />
-      ))}
+      {messages
+        .filter((message) => message.role !== 'SYSTEM')
+        .map((message) => (
+          <MessageBubble key={message.id} message={message} />
+        ))}
 
       {isStreaming && streamedContent && (
         <MessageBubble

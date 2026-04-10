@@ -1,4 +1,4 @@
-import { Box, Typography, Paper } from '@mui/material';
+import { Box, Typography, Paper, alpha } from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 import { InterviewMessage } from '../../services/interview-service';
 import { ScoreBadge } from './score-badge';
@@ -20,10 +20,11 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
           sx={{
             fontStyle: 'italic',
             color: 'text.secondary',
-            bgcolor: 'grey.50',
-            px: 2,
+            bgcolor: alpha('#64748B', 0.06),
+            px: 2.5,
             py: 1,
-            borderRadius: 1,
+            borderRadius: 2,
+            fontSize: '0.8125rem',
           }}
         >
           {message.content}
@@ -41,14 +42,15 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
       }}
     >
       <Paper
-        elevation={1}
         sx={{
           maxWidth: '70%',
-          px: 2,
+          px: 2.5,
           py: 1.5,
-          bgcolor: isUser ? 'primary.main' : 'grey.100',
+          bgcolor: isUser ? 'primary.main' : 'background.paper',
           color: isUser ? 'primary.contrastText' : 'text.primary',
-          borderRadius: 2,
+          borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+          border: isUser ? 'none' : '1px solid',
+          borderColor: isUser ? 'transparent' : 'divider',
           position: 'relative',
         }}
       >
@@ -56,8 +58,9 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
           <Typography
             variant="caption"
             sx={{
-              opacity: 0.8,
+              opacity: 0.7,
               fontWeight: 600,
+              fontSize: '0.7rem',
             }}
           >
             {isUser ? 'You' : 'Interviewer'}
@@ -68,7 +71,7 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
         </Box>
 
         {isUser ? (
-          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
             {message.content}
           </Typography>
         ) : (
@@ -79,11 +82,12 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
               '& p:last-of-type': { mb: 0 },
               '& ul, & ol': { my: 1, pl: 2 },
               '& code': {
-                bgcolor: 'rgba(0,0,0,0.1)',
+                bgcolor: alpha('#64748B', 0.1),
                 px: 0.5,
                 py: 0.25,
                 borderRadius: 0.5,
-                fontSize: '0.9em',
+                fontSize: '0.85em',
+                fontFamily: '"JetBrains Mono", "Fira Code", monospace',
               },
             }}
           >
@@ -98,8 +102,9 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
               display: 'inline-block',
               width: 8,
               height: 16,
-              bgcolor: 'currentColor',
+              bgcolor: 'primary.main',
               ml: 0.5,
+              borderRadius: 0.5,
               animation: 'blink 1s infinite',
               '@keyframes blink': {
                 '0%, 50%': { opacity: 1 },
@@ -114,8 +119,8 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
           sx={{
             display: 'block',
             mt: 0.5,
-            opacity: 0.6,
-            fontSize: '0.7rem',
+            opacity: 0.5,
+            fontSize: '0.675rem',
           }}
         >
           {new Date(message.createdAt).toLocaleTimeString()}

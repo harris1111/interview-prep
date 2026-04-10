@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Container, Paper, Typography, Box, Alert, CircularProgress, Link } from '@mui/material';
+import { Psychology as BrainIcon } from '@mui/icons-material';
 import { authService } from '../../services/auth-service';
 
 export function VerifyEmailPage() {
@@ -36,12 +37,36 @@ export function VerifyEmailPage() {
   }, [token, navigate]);
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8 }}>
-        <Paper sx={{ p: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        bgcolor: 'background.default',
+      }}
+    >
+      <Container maxWidth="sm">
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 56,
+              height: 56,
+              borderRadius: 3,
+              bgcolor: 'primary.main',
+              mb: 2,
+            }}
+          >
+            <BrainIcon sx={{ color: 'white', fontSize: 32 }} />
+          </Box>
+          <Typography variant="h4" fontWeight={700}>
             Email Verification
           </Typography>
+        </Box>
+
+        <Paper sx={{ p: 4, border: '1px solid', borderColor: 'divider' }}>
 
           {status === 'loading' && (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4 }}>
@@ -76,7 +101,7 @@ export function VerifyEmailPage() {
             </>
           )}
         </Paper>
-      </Box>
-    </Container>
+      </Container>
+    </Box>
   );
 }

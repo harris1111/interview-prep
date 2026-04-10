@@ -11,6 +11,9 @@ import {
   ListItemIcon,
   ListItemText,
   IconButton,
+  Divider,
+  Avatar,
+  Button,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -23,10 +26,13 @@ import {
   Menu as MenuIcon,
   Logout as LogoutIcon,
   LibraryBooks as LibraryBooksIcon,
+  ArrowBack as ArrowBackIcon,
+  Psychology as BrainIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/use-auth';
+import { ThemeToggle } from '../theme-toggle';
 
-const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH = 260;
 
 const menuItems = [
   { path: '/admin', label: 'Dashboard', icon: <DashboardIcon /> },
@@ -54,26 +60,89 @@ export function AdminLayout() {
     navigate('/auth/login');
   };
 
+  const userInitial = user?.name?.charAt(0)?.toUpperCase() || 'A';
+
   const drawer = (
-    <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          Admin Panel
-        </Typography>
-      </Toolbar>
-      <List>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: 2,
+            bgcolor: 'primary.main',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <BrainIcon sx={{ color: 'white', fontSize: 22 }} />
+        </Box>
+        <Box>
+          <Typography variant="subtitle1" fontWeight={700} lineHeight={1.2}>
+            InterviewAI
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Admin Panel
+          </Typography>
+        </Box>
+      </Box>
+
+      <Divider />
+
+      <List sx={{ flex: 1, px: 1.5, py: 1 }}>
         {menuItems.map((item) => (
           <ListItemButton
             key={item.path}
             selected={location.pathname === item.path}
             onClick={() => navigate(item.path)}
+            sx={{ mb: 0.5, py: 1 }}
           >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} />
+            <ListItemIcon sx={{ minWidth: 40, color: location.pathname === item.path ? 'primary.main' : 'text.secondary' }}>
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText
+              primary={item.label}
+              primaryTypographyProps={{
+                fontSize: '0.875rem',
+                fontWeight: location.pathname === item.path ? 600 : 400,
+              }}
+            />
           </ListItemButton>
         ))}
       </List>
-    </div>
+
+      <Divider />
+
+      <Box sx={{ p: 2 }}>
+        <Button
+          fullWidth
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/')}
+          size="small"
+          sx={{ mb: 1.5 }}
+        >
+          Back to App
+        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem' }}>
+            {userInitial}
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="body2" fontWeight={600} noWrap>
+              {user?.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {user?.role}
+            </Typography>
+          </Box>
+          <IconButton size="small" onClick={handleLogout} title="Logout">
+            <LogoutIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Box>
+    </Box>
   );
 
   return (
@@ -83,6 +152,8 @@ export function AdminLayout() {
         sx={{
           width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
           ml: { sm: `${DRAWER_WIDTH}px` },
+          bgcolor: 'background.paper',
+          color: 'text.primary',
         }}
       >
         <Toolbar>
@@ -95,15 +166,10 @@ export function AdminLayout() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Admin Panel
+          <Typography variant="h6" noWrap component="div" fontWeight={600} sx={{ flexGrow: 1 }}>
+            {menuItems.find((item) => item.path === location.pathname)?.label || 'Admin'}
           </Typography>
-          <Typography variant="body2" sx={{ mr: 2 }}>
-            {user?.name} ({user?.role})
-          </Typography>
-          <IconButton color="inherit" onClick={handleLogout}>
-            <LogoutIcon />
-          </IconButton>
+          <ThemeToggle />
         </Toolbar>
       </AppBar>
       <Box

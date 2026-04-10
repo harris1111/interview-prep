@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateSettingsDto } from '../dto/settings.dto';
+import { LlmService } from '../../llm/llm.service';
 import OpenAI from 'openai';
 
 @Injectable()
 export class SettingsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private llmService: LlmService,
+  ) {}
 
   async getSettings() {
     let settings = await this.prisma.appSettings.findUnique({
@@ -27,7 +31,7 @@ export class SettingsService {
   }
 
   async updateSettings(dto: UpdateSettingsDto) {
-    return this.prisma.appSettings.upsert({
+    const result = await this.prisma.appSettings.upsert({
       where: { id: 'singleton' },
       create: {
         id: 'singleton',
@@ -35,6 +39,8 @@ export class SettingsService {
       },
       update: dto,
     });
+    this.llmService.clearCache();
+    return result;
   }
 
   async testLlm() {

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Grid, Card, CardContent, Typography, Box, Skeleton } from '@mui/material';
+import { Grid, Card, CardContent, Typography, Box, Skeleton, alpha } from '@mui/material';
 import {
   People as PeopleIcon,
   Quiz as QuizIcon,
@@ -21,22 +21,22 @@ interface StatCardProps {
 
 function StatCard({ title, value, icon, color }: StatCardProps) {
   return (
-    <Card>
-      <CardContent>
+    <Card sx={{ '&:hover': { borderColor: alpha(color, 0.3) } }}>
+      <CardContent sx={{ p: 2.5 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
-            <Typography color="text.secondary" gutterBottom>
+            <Typography variant="body2" color="text.secondary" fontWeight={500} gutterBottom>
               {title}
             </Typography>
-            <Typography variant="h4" component="div">
+            <Typography variant="h4" component="div" fontWeight={700}>
               {value}
             </Typography>
           </Box>
           <Box
             sx={{
-              backgroundColor: color,
-              borderRadius: 2,
-              p: 2,
+              backgroundColor: alpha(color, 0.1),
+              borderRadius: 3,
+              p: 1.5,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -83,64 +83,64 @@ export function Dashboard() {
           <StatCard
             title="Total Users"
             value={stats?.totalUsers ?? 0}
-            icon={<PeopleIcon sx={{ color: 'white', fontSize: 40 }} />}
-            color="#2196f3"
+            icon={<PeopleIcon sx={{ color: '#2563EB', fontSize: 32 }} />}
+            color="#2563EB"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Total Sessions"
             value={stats?.totalSessions ?? 0}
-            icon={<AssessmentIcon sx={{ color: 'white', fontSize: 40 }} />}
-            color="#4caf50"
+            icon={<AssessmentIcon sx={{ color: '#10B981', fontSize: 32 }} />}
+            color="#10B981"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Total Questions"
             value={stats?.totalQuestions ?? 0}
-            icon={<QuizIcon sx={{ color: 'white', fontSize: 40 }} />}
-            color="#ff9800"
+            icon={<QuizIcon sx={{ color: '#F97316', fontSize: 32 }} />}
+            color="#F97316"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Average Score"
             value={stats?.avgScore ? `${stats.avgScore.toFixed(1)}%` : '0%'}
-            icon={<TrendingUpIcon sx={{ color: 'white', fontSize: 40 }} />}
-            color="#9c27b0"
+            icon={<TrendingUpIcon sx={{ color: '#7C3AED', fontSize: 32 }} />}
+            color="#7C3AED"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Total Careers"
             value={stats?.totalCareers ?? 0}
-            icon={<WorkIcon sx={{ color: 'white', fontSize: 40 }} />}
-            color="#f44336"
+            icon={<WorkIcon sx={{ color: '#EF4444', fontSize: 32 }} />}
+            color="#EF4444"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Total Topics"
             value={stats?.totalTopics ?? 0}
-            icon={<TopicIcon sx={{ color: 'white', fontSize: 40 }} />}
-            color="#00bcd4"
+            icon={<TopicIcon sx={{ color: '#06B6D4', fontSize: 32 }} />}
+            color="#06B6D4"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Total Scenarios"
             value={stats?.totalScenarios ?? 0}
-            icon={<ScenarioIcon sx={{ color: 'white', fontSize: 40 }} />}
-            color="#673ab7"
+            icon={<ScenarioIcon sx={{ color: '#8B5CF6', fontSize: 32 }} />}
+            color="#8B5CF6"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Recent Sessions"
             value={stats?.recentSessions ?? 0}
-            icon={<EventIcon sx={{ color: 'white', fontSize: 40 }} />}
-            color="#3f51b5"
+            icon={<EventIcon sx={{ color: '#3B82F6', fontSize: 32 }} />}
+            color="#3B82F6"
           />
         </Grid>
       </Grid>
