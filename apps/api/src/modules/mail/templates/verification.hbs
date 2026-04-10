@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify your email</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background-color: #f4f4f4; padding: 20px; border-radius: 5px;">
+    <h1 style="color: #1976d2; margin-top: 0;">Welcome to Interview Review Platform!</h1>
+    
+    <p>Hi {{name}},</p>
+    
+    <p>Thank you for registering. Please verify your email address by clicking the button below:</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="{{verificationUrl}}" 
+         style="background-color: #1976d2; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+        Verify Email Address
+      </a>
+    </div>
+    
+    <p>Or copy and paste this link into your browser:</p>
+    <p style="word-break: break-all; color: #1976d2;">{{verificationUrl}}</p>
+    
+    <p>If you did not create an account, please ignore this email.</p>
+    
+    <p>Best regards,<br>Interview Review Platform Team</p>
+  </div>
+</body>
+</html>
