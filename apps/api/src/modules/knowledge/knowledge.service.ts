@@ -173,11 +173,31 @@ export class KnowledgeService {
   }
 
   async findByTopic(
-    topicSlug: string,
+    topicFocus: string,
     careerId?: string,
     limit: number = 5,
   ): Promise<{ title: string; content: string }[]> {
-    const where: any = { topicSlug };
+    // topicFocus can be comma-separated topic names like "JavaScript, React"
+    const topicNames = topicFocus
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    const where: any = {
+      OR: [
+        // Match by topicSlug (exact)
+        ...topicNames.map((name) => ({
+          topicSlug: name
+            .toLowerCase()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-'),
+        })),
+        // Match by title containing the topic name
+        ...topicNames.map((name) => ({
+          title: { contains: name, mode: 'insensitive' as const },
+        })),
+      ],
+    };
 
     if (careerId) {
       where.careerId = careerId;

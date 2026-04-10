@@ -108,13 +108,25 @@ export class ScoringService {
     // Get evaluation from LLM
     const evaluation = await this.llmService.parseJsonResponse<RoundScore>(messages);
 
+    // Validate and clamp score to 0-10 range
+    const rawScore = Number(evaluation.averageScore);
+    const validatedScore = Number.isFinite(rawScore)
+      ? Math.min(10, Math.max(0, rawScore))
+      : 0;
+
     // Ensure evaluation has expected structure
     const roundScore: RoundScore = {
-      averageScore: evaluation.averageScore || 0,
-      summary: evaluation.summary || 'No summary available',
-      strengths: evaluation.strengths || [],
-      improvements: evaluation.improvements || [],
-      perAnswerScores: evaluation.perAnswerScores || [],
+      averageScore: validatedScore,
+      summary: typeof evaluation.summary === 'string' ? evaluation.summary : 'No summary available',
+      strengths: Array.isArray(evaluation.strengths) ? evaluation.strengths : [],
+      improvements: Array.isArray(evaluation.improvements) ? evaluation.improvements : [],
+      perAnswerScores: Array.isArray(evaluation.perAnswerScores)
+        ? evaluation.perAnswerScores.map((s: any) => ({
+            questionIndex: Number(s.questionIndex) || 0,
+            score: Number.isFinite(Number(s.score)) ? Math.min(10, Math.max(0, Number(s.score))) : 0,
+            topic: typeof s.topic === 'string' ? s.topic : '',
+          }))
+        : [],
     };
 
     // Update round with score and feedback
@@ -162,14 +174,20 @@ export class ScoringService {
     // Get overall assessment from LLM
     const assessment = await this.llmService.parseJsonResponse<SessionScore>(messages);
 
+    // Validate and clamp score to 0-10 range
+    const rawOverall = Number(assessment.overallScore);
+    const validatedOverall = Number.isFinite(rawOverall)
+      ? Math.min(10, Math.max(0, rawOverall))
+      : 0;
+
     // Ensure assessment has expected structure
     const sessionScore: SessionScore = {
-      overallScore: assessment.overallScore || 0,
-      summary: assessment.summary || 'No summary available',
-      strengths: assessment.strengths || [],
-      weaknesses: assessment.weaknesses || [],
-      readinessLevel: assessment.readinessLevel || 'needs_practice',
-      topRecommendations: assessment.topRecommendations || [],
+      overallScore: validatedOverall,
+      summary: typeof assessment.summary === 'string' ? assessment.summary : 'No summary available',
+      strengths: Array.isArray(assessment.strengths) ? assessment.strengths : [],
+      weaknesses: Array.isArray(assessment.weaknesses) ? assessment.weaknesses : [],
+      readinessLevel: typeof assessment.readinessLevel === 'string' ? assessment.readinessLevel : 'needs_practice',
+      topRecommendations: Array.isArray(assessment.topRecommendations) ? assessment.topRecommendations : [],
     };
 
     // Update session with overall score and feedback

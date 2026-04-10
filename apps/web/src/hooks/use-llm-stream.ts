@@ -52,6 +52,11 @@ export function useLlmStream() {
           if (line.startsWith('data: ') && line !== 'data: [DONE]') {
             try {
               const parsed = JSON.parse(line.slice(6));
+              if (parsed.error) {
+                setError(parsed.error);
+                setIsStreaming(false);
+                return accumulated;
+              }
               if (parsed.content) {
                 accumulated += parsed.content;
                 setStreamedContent(accumulated);

@@ -9,7 +9,7 @@ A comprehensive AI-powered interview preparation and practice platform built wit
 - **Database:** PostgreSQL with Prisma ORM
 - **Cache/Queue:** Redis with BullMQ
 - **Authentication:** JWT with Passport
-- **AI Integration:** OpenAI API
+- **AI Integration:** OpenAI-compatible API (configurable base URL)
 - **Email:** Nodemailer with Handlebars templates
 
 ### Frontend (apps/web)
@@ -69,7 +69,9 @@ cp .env.example .env
 
 Update the following critical values:
 - `JWT_SECRET`: Generate a secure random string
-- `LLM_API_KEY`: Your OpenAI API key
+- `LLM_BASE_URL`: API base URL (default: `https://api.openai.com/v1`). Change this to use any OpenAI-compatible provider (Ollama, LM Studio, Azure OpenAI, Together AI, etc.)
+- `LLM_API_KEY`: Your API key for the LLM provider
+- `LLM_MODEL`: Model name (default: `gpt-4o`)
 - `SMTP_*`: Your email service credentials
 
 ### 4. Initialize Database
