@@ -20,7 +20,10 @@ export class SettingsService {
       });
     }
 
-    return settings;
+    return {
+      ...settings,
+      llmApiKey: settings.llmApiKey ? '***' + settings.llmApiKey.slice(-4) : '',
+    };
   }
 
   async updateSettings(dto: UpdateSettingsDto) {

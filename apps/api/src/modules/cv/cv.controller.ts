@@ -18,6 +18,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CvService } from './cv.service';
 import { extname } from 'path';
 import { randomUUID } from 'crypto';
+import { mkdirSync } from 'fs';
 
 @Controller('cv')
 @UseGuards(JwtAuthGuard)
@@ -29,8 +30,9 @@ export class CvController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: (_req, _file, cb) => {
-          const userId = (_req as any).user.sub;
+          const userId = (_req as any).user?.id;
           const uploadPath = `uploads/cv/${userId}`;
+          mkdirSync(uploadPath, { recursive: true });
           cb(null, uploadPath);
         },
         filename: (_req, file, cb) => {
@@ -50,7 +52,7 @@ export class CvController {
     }),
   )
   async uploadCv(
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
     @UploadedFile() file: Express.Multer.File,
     @Query('careerId') careerId?: string,
   ) {
@@ -58,14 +60,14 @@ export class CvController {
   }
 
   @Get('my')
-  async getMyCvs(@CurrentUser('sub') userId: string) {
+  async getMyCvs(@CurrentUser('id') userId: string) {
     return this.cvService.getMyCvs(userId);
   }
 
   @Get(':id')
   async getCv(
     @Param('id') id: string,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
   ) {
     return this.cvService.getCv(id, userId);
   }
@@ -73,7 +75,7 @@ export class CvController {
   @Post(':id/reanalyze')
   async reanalyze(
     @Param('id') id: string,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
     @Query('careerId') careerId?: string,
   ) {
     return this.cvService.reanalyze(id, userId, careerId);
@@ -83,7 +85,7 @@ export class CvController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteCv(
     @Param('id') id: string,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
   ) {
     await this.cvService.delete(id, userId);
   }
