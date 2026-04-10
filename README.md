@@ -116,8 +116,45 @@ The platform follows a modular monorepo architecture:
 
 - **Monorepo Management:** pnpm workspaces for efficient dependency management
 - **Code Sharing:** Shared types package ensures type safety across frontend and backend
-- **API Design:** RESTful API with OpenAPI documentation
-- **Real-time Updates:** WebSocket support for live interview sessions
+- **API Design:** RESTful API with JWT authentication
+- **Real-time Updates:** SSE (Server-Sent Events) for streaming interview responses
+
+## Production Deployment (Docker)
+
+### 1. Configure Environment
+
+```bash
+cp .env.example .env
+# Edit .env with production values
+```
+
+### 2. Build and Start
+
+```bash
+docker compose up -d --build
+```
+
+This starts all services: PostgreSQL, Redis, API (with auto-migration), Web, and Nginx reverse proxy.
+
+The app is accessible at `http://localhost` (or the port set in `APP_EXTERNAL_PORT`).
+
+### Services
+
+| Service    | Description                          |
+|------------|--------------------------------------|
+| `postgres` | PostgreSQL 16 database               |
+| `redis`    | Redis 7 cache & queue                |
+| `api`      | NestJS backend (auto-migrates on start) |
+| `web`      | React SPA (served via nginx)         |
+| `nginx`    | Reverse proxy (routes /api → API, / → SPA) |
+
+## Key Features
+
+- **Admin Panel**: Manage careers, topics, questions, scenarios, users, settings, knowledge base
+- **CV Analysis**: Upload PDFs, LLM-powered skill extraction and gap analysis
+- **AI Interview Engine**: Multi-round mock interviews with SSE streaming
+- **Scoring**: Per-answer, per-round, and overall session scoring with feedback
+- **Knowledge Base**: Import markdown files as question banks or study material for RAG context
 - **Background Jobs:** BullMQ for asynchronous processing (CV analysis, email sending)
 - **Caching:** Redis for session management and performance optimization
 
