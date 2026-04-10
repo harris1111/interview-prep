@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Container, Typography, Box } from '@mui/material';
 import { useAuth } from './hooks/use-auth';
 import { ProtectedRoute } from './components/auth/protected-route';
 import { AdminRoleGuard } from './components/auth/admin-role-guard';
+import { MainLayout } from './components/main-layout';
+import { HomePage } from './pages/home-page';
 import { LoginPage } from './pages/auth/login';
 import { RegisterPage } from './pages/auth/register';
 import { ForgotPasswordPage } from './pages/auth/forgot-password';
@@ -27,28 +28,6 @@ import { InterviewHistoryPage } from './pages/interview/history';
 import { InterviewReviewPage } from './pages/interview/review';
 import { InterviewScoresPage } from './pages/interview/scores';
 
-function HomePage() {
-  const { user } = useAuth();
-
-  return (
-    <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h3" component="h1" gutterBottom>
-          Interview Review Platform
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          AI-powered interview preparation and practice platform
-        </Typography>
-        {user && (
-          <Typography variant="body1" sx={{ mt: 2 }}>
-            Welcome back, {user.name}!
-          </Typography>
-        )}
-      </Box>
-    </Container>
-  );
-}
-
 function App() {
   const { loadUser } = useAuth();
 
@@ -59,24 +38,33 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Auth routes */}
+        {/* Auth routes (no layout) */}
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
         <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
 
-        {/* Protected routes */}
+        {/* Protected routes with main layout */}
         <Route
-          path="/"
           element={
             <ProtectedRoute>
-              <HomePage />
+              <MainLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<HomePage />} />
+          <Route path="/cv/upload" element={<CvUploadPage />} />
+          <Route path="/cv/my" element={<MyCvsPage />} />
+          <Route path="/cv/:id" element={<CvAnalysisPage />} />
+          <Route path="/interview/start" element={<InterviewStartPage />} />
+          <Route path="/interview/history" element={<InterviewHistoryPage />} />
+          <Route path="/interview/scores" element={<InterviewScoresPage />} />
+          <Route path="/interview/:id" element={<InterviewSessionPage />} />
+          <Route path="/interview/:id/review" element={<InterviewReviewPage />} />
+        </Route>
 
-        {/* Admin routes - only for ADMIN role */}
+        {/* Admin routes */}
         <Route
           path="/admin"
           element={
@@ -94,74 +82,6 @@ function App() {
           <Route path="users" element={<Users />} />
           <Route path="settings" element={<Settings />} />
         </Route>
-
-        {/* CV routes */}
-        <Route
-          path="/cv/upload"
-          element={
-            <ProtectedRoute>
-              <CvUploadPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cv/my"
-          element={
-            <ProtectedRoute>
-              <MyCvsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cv/:id"
-          element={
-            <ProtectedRoute>
-              <CvAnalysisPage />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Interview routes */}
-        <Route
-          path="/interview/start"
-          element={
-            <ProtectedRoute>
-              <InterviewStartPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/interview/history"
-          element={
-            <ProtectedRoute>
-              <InterviewHistoryPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/interview/scores"
-          element={
-            <ProtectedRoute>
-              <InterviewScoresPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/interview/:id"
-          element={
-            <ProtectedRoute>
-              <InterviewSessionPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/interview/:id/review"
-          element={
-            <ProtectedRoute>
-              <InterviewReviewPage />
-            </ProtectedRoute>
-          }
-        />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
