@@ -38,9 +38,12 @@ export class SettingsService {
   }
 
   async testLlm() {
-    const settings = await this.getSettings();
+    // Read directly from DB to get unmasked API key (getSettings() masks it)
+    const settings = await this.prisma.appSettings.findUnique({
+      where: { id: 'singleton' },
+    });
 
-    if (!settings.llmApiKey) {
+    if (!settings?.llmApiKey) {
       throw new Error('LLM API key not configured');
     }
 

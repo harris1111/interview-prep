@@ -80,6 +80,29 @@ export class CareerService {
       throw new NotFoundException('Career not found');
     }
 
+    // Check for dependent data before cascade delete
+    const [topicCount, scenarioCount, sessionCount] = await Promise.all([
+      this.prisma.topic.count({ where: { careerId: id } }),
+      this.prisma.scenarioTemplate.count({ where: { careerId: id } }),
+      this.prisma.interviewSession.count({
+        where: { scenario: { careerId: id } },
+      }),
+    ]);
+
+    if (sessionCount > 0) {
+      throw new ConflictException(
+        `Cannot delete career with ${sessionCount} active interview session(s). ` +
+          'Delete associated sessions first.',
+      );
+    }
+
+    if (scenarioCount > 0 || topicCount > 0) {
+      throw new ConflictException(
+        `Career has ${topicCount} topic(s) and ${scenarioCount} scenario(s). ` +
+          'Delete associated topics and scenarios first.',
+      );
+    }
+
     await this.prisma.career.delete({ where: { id } });
   }
 

@@ -20,14 +20,34 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class AuthService {
-  private refreshTokens = new Map<string, string>(); // Simple in-memory storage
+  private refreshTokens = new Map<string, { userId: string; expiresAt: number }>();
+  private cleanupInterval: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly mailService: MailService,
-  ) {}
+  ) {
+    // Clean expired tokens every 15 minutes
+    this.cleanupInterval = setInterval(
+      () => this.cleanExpiredTokens(),
+      15 * 60 * 1000,
+    );
+  }
+
+  onModuleDestroy() {
+    clearInterval(this.cleanupInterval);
+  }
+
+  private cleanExpiredTokens() {
+    const now = Date.now();
+    for (const [token, data] of this.refreshTokens) {
+      if (data.expiresAt <= now) {
+        this.refreshTokens.delete(token);
+      }
+    }
+  }
 
   async register(registerDto: RegisterDto): Promise<{ message: string }> {
     const { email, password, name } = registerDto;
@@ -110,27 +130,31 @@ export class AuthService {
       expiresIn: this.configService.get<string>('jwt.refreshExpiry'),
     });
 
-    this.refreshTokens.set(refreshToken, user.id);
+    this.refreshTokens.set(refreshToken, {
+      userId: user.id,
+      expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     return { accessToken, refreshToken };
   }
 
   async refreshToken(token: string): Promise<{ accessToken: string }> {
-    const userId = this.refreshTokens.get(token);
+    const tokenData = this.refreshTokens.get(token);
 
-    if (!userId) {
+    if (!tokenData || tokenData.expiresAt <= Date.now()) {
+      this.refreshTokens.delete(token);
       throw new UnauthorizedException('Invalid refresh token');
     }
 
     try {
       const payload = this.jwtService.verify(token);
 
-      if (payload.sub !== userId) {
+      if (payload.sub !== tokenData.userId) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
       const user = await this.prisma.user.findUnique({
-        where: { id: userId },
+        where: { id: tokenData.userId },
       });
 
       if (!user || !user.isVerified) {
@@ -247,5 +271,10 @@ export class AuthService {
     });
 
     return user;
+  }
+
+  async logout(refreshToken: string): Promise<{ message: string }> {
+    this.refreshTokens.delete(refreshToken);
+    return { message: 'Logged out successfully' };
   }
 }
