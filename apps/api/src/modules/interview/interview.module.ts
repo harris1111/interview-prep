@@ -3,6 +3,7 @@ import { InterviewController } from './interview.controller';
 import { InterviewService } from './interview.service';
 import { InterviewChatService } from './interview-chat.service';
 import { PromptBuilderService } from './prompt-builder.service';
+import { ScoringService } from './scoring.service';
 
 @Module({
   controllers: [InterviewController],
@@ -10,6 +11,7 @@ import { PromptBuilderService } from './prompt-builder.service';
     InterviewService,
     InterviewChatService,
     PromptBuilderService,
+    ScoringService,
   ],
   exports: [InterviewService, InterviewChatService],
 })

@@ -92,12 +92,12 @@ export function InterviewSessionPage() {
 
     const tempUserMsg: InterviewMessage = {
       id: `temp-${Date.now()}`,
-      sessionId: session.id,
-      roundNumber: currentRound,
+      roundId: '',
       role: 'USER',
       content: userMessage,
-      answerScore: null,
+      score: null,
       feedback: null,
+      metadata: null,
       createdAt: new Date().toISOString(),
     };
 

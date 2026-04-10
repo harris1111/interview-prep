@@ -130,4 +130,79 @@ Format your response as JSON with the following structure:
       },
     ];
   }
+
+  buildRoundScoringPrompt(
+    messages: InterviewMessage[],
+    topicFocus: string,
+    roundNumber: number,
+  ): ChatMessage[] {
+    // Format conversation as Q&A pairs
+    const conversationText = messages
+      .filter((m) => m.role !== 'SYSTEM')
+      .map((m) => {
+        const role = m.role === 'USER' ? 'Candidate' : 'Interviewer';
+        return `${role}: ${m.content}`;
+      })
+      .join('\n\n');
+
+    return [
+      {
+        role: 'system',
+        content: 'You are an experienced technical interviewer evaluating candidate responses.',
+      },
+      {
+        role: 'user',
+        content: `Review this interview round conversation and provide evaluation.
+
+Round: Round ${roundNumber} | Topic: ${topicFocus}
+
+Conversation:
+${conversationText}
+
+Provide evaluation as valid JSON ONLY:
+{
+  "averageScore": <number 0-10>,
+  "summary": "<2-3 sentence summary>",
+  "strengths": ["<strength 1>", "<strength 2>"],
+  "improvements": ["<area 1>", "<area 2>"],
+  "perAnswerScores": [
+    { "questionIndex": 1, "score": <number 0-10>, "topic": "<string>" }
+  ]
+}`,
+      },
+    ];
+  }
+
+  buildOverallScoringPrompt(
+    rounds: Array<{ roundNumber: number; score: number | null; feedback: Prisma.JsonValue }>,
+    careerName: string,
+  ): ChatMessage[] {
+    const roundSummaries = rounds
+      .map((r) => `\n## Round ${r.roundNumber} (Score: ${r.score || 0}/10)\n${JSON.stringify(r.feedback, null, 2)}`)
+      .join('\n');
+
+    return [
+      {
+        role: 'system',
+        content: 'You are an experienced technical interviewer providing final assessment.',
+      },
+      {
+        role: 'user',
+        content: `Review all rounds of this mock interview for ${careerName} position.
+
+Round summaries:
+${roundSummaries}
+
+Provide overall assessment as valid JSON ONLY:
+{
+  "overallScore": <number 0-10>,
+  "summary": "<paragraph assessment>",
+  "strengths": ["<strength>"],
+  "weaknesses": ["<weakness>"],
+  "readinessLevel": "<not_ready|needs_practice|mostly_ready|interview_ready>",
+  "topRecommendations": ["<recommendation 1>", "<recommendation 2>", "<recommendation 3>"]
+}`,
+      },
+    ];
+  }
 }

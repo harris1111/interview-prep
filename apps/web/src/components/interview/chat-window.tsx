@@ -39,12 +39,12 @@ export function ChatWindow({ messages, streamedContent, isStreaming }: ChatWindo
         <MessageBubble
           message={{
             id: 'streaming',
-            sessionId: '',
-            roundNumber: 0,
+            roundId: '',
             role: 'ASSISTANT',
             content: streamedContent,
-            answerScore: null,
+            score: null,
             feedback: null,
+            metadata: null,
             createdAt: new Date().toISOString(),
           }}
           isStreaming

@@ -5,12 +5,11 @@ export interface InterviewSession {
   userId: string;
   scenarioId: string;
   cvAnalysisId: string | null;
-  status: 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED';
+  status: 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED';
   overallScore: number | null;
-  readinessLevel: string | null;
-  strengths: string[] | null;
-  weaknesses: string[] | null;
-  recommendations: string[] | null;
+  overallFeedback: any | null;
+  startedAt: string | null;
+  completedAt: string | null;
   createdAt: string;
   updatedAt: string;
   scenario?: {
@@ -26,23 +25,22 @@ export interface InterviewRound {
   id: string;
   sessionId: string;
   roundNumber: number;
-  roundName: string;
+  topicFocus: string;
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
   score: number | null;
-  observations: string | null;
-  recommendations: string[] | null;
-  createdAt: string;
-  updatedAt: string;
+  feedback: any | null;
+  startedAt: string | null;
+  completedAt: string | null;
 }
 
 export interface InterviewMessage {
   id: string;
-  sessionId: string;
-  roundNumber: number;
+  roundId: string;
   role: 'SYSTEM' | 'USER' | 'ASSISTANT';
   content: string;
-  answerScore: number | null;
+  score: number | null;
   feedback: string | null;
+  metadata: any | null;
   createdAt: string;
 }
 

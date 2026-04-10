@@ -136,14 +136,16 @@ export function InterviewHistoryPage() {
                     <Typography variant="body2" fontWeight={600}>
                       Overall Score: {session.overallScore}/10
                     </Typography>
-                    {session.readinessLevel && (
+                    {session.overallFeedback && (session.overallFeedback as any).readinessLevel && (
                       <Chip
-                        label={session.readinessLevel}
+                        label={(session.overallFeedback as any).readinessLevel}
                         size="small"
                         color={
-                          session.readinessLevel === 'READY'
+                          (session.overallFeedback as any).readinessLevel === 'interview_ready'
                             ? 'success'
-                            : session.readinessLevel === 'ALMOST_READY'
+                            : (session.overallFeedback as any).readinessLevel === 'mostly_ready'
+                            ? 'info'
+                            : (session.overallFeedback as any).readinessLevel === 'needs_practice'
                             ? 'warning'
                             : 'error'
                         }

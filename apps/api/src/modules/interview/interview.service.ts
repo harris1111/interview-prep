@@ -5,8 +5,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { LlmService } from '../llm/llm.service';
 import { PromptBuilderService } from './prompt-builder.service';
+import { ScoringService } from './scoring.service';
 import { StartInterviewDto } from './dto/start-interview.dto';
 import { SessionStatus, RoundStatus, MessageRole } from '@prisma/client';
 
@@ -14,8 +14,8 @@ import { SessionStatus, RoundStatus, MessageRole } from '@prisma/client';
 export class InterviewService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly llmService: LlmService,
     private readonly promptBuilder: PromptBuilderService,
+    private readonly scoringService: ScoringService,
   ) {}
 
   async startInterview(userId: string, dto: StartInterviewDto) {
@@ -218,15 +218,10 @@ export class InterviewService {
       throw new ForbiddenException('Not authorized to access this session');
     }
 
-    // Get round with messages
+    // Get round
     const round = await this.prisma.interviewRound.findUnique({
       where: {
         sessionId_roundNumber: { sessionId, roundNumber },
-      },
-      include: {
-        messages: {
-          orderBy: { createdAt: 'asc' },
-        },
       },
     });
 
@@ -238,19 +233,14 @@ export class InterviewService {
       throw new BadRequestException('Round is already completed');
     }
 
-    // Build summary prompt
-    const summaryPrompt = this.promptBuilder.buildRoundSummaryPrompt(round.messages);
+    // Use ScoringService to evaluate the round
+    await this.scoringService.scoreRound(sessionId, roundNumber);
 
-    // Get evaluation from LLM
-    const evaluation = await this.llmService.parseJsonResponse(summaryPrompt);
-
-    // Update round with feedback
+    // Update round status
     return this.prisma.interviewRound.update({
       where: { id: round.id },
       data: {
         status: RoundStatus.COMPLETED,
-        score: evaluation.score || 0,
-        feedback: evaluation,
         completedAt: new Date(),
       },
     });
@@ -290,26 +280,14 @@ export class InterviewService {
       );
     }
 
-    // Get round feedbacks
-    const roundFeedbacks = session.rounds.map((r) => ({
-      roundNumber: r.roundNumber,
-      score: r.score || 0,
-      feedback: r.feedback,
-    }));
+    // Use ScoringService to evaluate the entire session
+    await this.scoringService.scoreSession(sessionId);
 
-    // Build overall summary prompt
-    const summaryPrompt = this.promptBuilder.buildOverallSummaryPrompt(roundFeedbacks);
-
-    // Get overall assessment from LLM
-    const overallAssessment = await this.llmService.parseJsonResponse(summaryPrompt);
-
-    // Update session with overall score and feedback
+    // Update session status
     return this.prisma.interviewSession.update({
       where: { id: sessionId },
       data: {
         status: SessionStatus.COMPLETED,
-        overallScore: overallAssessment.overallScore || 0,
-        overallFeedback: overallAssessment,
         completedAt: new Date(),
       },
       include: {

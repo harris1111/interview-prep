@@ -24,6 +24,7 @@ import { InterviewStartPage } from './pages/interview/start';
 import { InterviewSessionPage } from './pages/interview/session';
 import { InterviewHistoryPage } from './pages/interview/history';
 import { InterviewReviewPage } from './pages/interview/review';
+import { InterviewScoresPage } from './pages/interview/scores';
 
 function HomePage() {
   const { user } = useAuth();
@@ -132,6 +133,14 @@ function App() {
           element={
             <ProtectedRoute>
               <InterviewHistoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/interview/scores"
+          element={
+            <ProtectedRoute>
+              <InterviewScoresPage />
             </ProtectedRoute>
           }
         />
