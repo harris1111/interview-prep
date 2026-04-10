@@ -4,6 +4,7 @@ import configuration from './config/configuration';
 import { PrismaModule } from './modules/prisma';
 import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { MailModule } from './modules/mail/mail.module';
     PrismaModule,
     AuthModule,
     MailModule,
+    AdminModule,
   ],
   controllers: [],
   providers: [],

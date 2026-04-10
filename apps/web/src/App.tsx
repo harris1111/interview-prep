@@ -3,11 +3,20 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Container, Typography, Box } from '@mui/material';
 import { useAuth } from './hooks/use-auth';
 import { ProtectedRoute } from './components/auth/protected-route';
+import { AdminRoleGuard } from './components/auth/admin-role-guard';
 import { LoginPage } from './pages/auth/login';
 import { RegisterPage } from './pages/auth/register';
 import { ForgotPasswordPage } from './pages/auth/forgot-password';
 import { ResetPasswordPage } from './pages/auth/reset-password';
 import { VerifyEmailPage } from './pages/auth/verify-email';
+import { AdminLayout } from './components/admin/admin-layout';
+import { Dashboard } from './pages/admin/dashboard';
+import { Careers } from './pages/admin/careers';
+import { Topics } from './pages/admin/topics';
+import { Questions } from './pages/admin/questions';
+import { Scenarios } from './pages/admin/scenarios';
+import { Users } from './pages/admin/users';
+import { Settings } from './pages/admin/settings';
 
 function HomePage() {
   const { user } = useAuth();
@@ -57,6 +66,24 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Admin routes - only for ADMIN role */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoleGuard>
+              <AdminLayout />
+            </AdminRoleGuard>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="careers" element={<Careers />} />
+          <Route path="topics" element={<Topics />} />
+          <Route path="questions" element={<Questions />} />
+          <Route path="scenarios" element={<Scenarios />} />
+          <Route path="users" element={<Users />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
